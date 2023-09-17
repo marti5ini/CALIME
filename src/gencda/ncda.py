@@ -68,7 +68,7 @@ class NCDApriori:
         self.df.columns = self.df.columns.str.replace(' ', '')
 
         # Instantiate Apriori
-        fim = Apriori(self.df, support=support, nbins=nbins, target=target,
+        fim = Apriori(self.df, support=support, num_bins=nbins, target=target,
                       zmax=zmax, strategy=strategy)
         # Fit Apriori
         fim.fit()

@@ -1,5 +1,7 @@
-from src.gencda.ncda import *
+import os
+
 from src.gencda.generative_model import *
+from src.gencda.ncda import *
 
 
 def get_causal_model(train_gen,
@@ -60,7 +62,9 @@ def get_causal_model(train_gen,
     graph.add_nodes_from(feature_names)
     graph.add_edges_from(causal_relations)
 
-    nx.write_gpickle(graph, path + '/ground_truth.gpickle')
+    file_path = os.path.join(path, 'ground_truth.gpickle')
+
+    nx.write_gpickle(graph, file_path)
 
     generative_model = CausalDataGeneration(graph, train_gen)
     generative_model.generate_data()

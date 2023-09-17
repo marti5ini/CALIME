@@ -1,19 +1,27 @@
-import time
-import networkx as nx
 import pickle
-import scipy
-from scipy import stats
+import time
 from random import choice
+
+import networkx as nx
+import scipy
 from lime.lime_tabular import *
+from scipy import stats
 
 
-class CALimeTabularExplainer(LimeTabularExplainer):
+class CALimeExplainer(LimeTabularExplainer):
+
+    def __init__(self, graph, generative_model, *args, **kwargs):
+        """
+        graph: networkx.DiGraph. Ground Truth of relations between the features.
+        generative_model: pickle model
+        """
+        super().__init__(*args, **kwargs)
+        self.graph = graph
+        self.generative_model = generative_model
 
     def explain_instance(self,
                          data_row,
                          predict_fn,
-                         graph,
-                         generative_model,
                          labels=(1,),
                          top_labels=None,
                          num_features=10,
@@ -21,45 +29,12 @@ class CALimeTabularExplainer(LimeTabularExplainer):
                          distance_metric='euclidean',
                          model_regressor=None):
 
-        """Generates explanations for a prediction.
-        First, we generate neighborhood data by randomly perturbing features
-        from the instance (see __data_inverse). We then learn locally weighted
-        linear models on this neighborhood data to explain each of the classes
-        in an interpretable way (see lime_base.py).
-        Args:
-            data_row: 1d numpy array or scipy.sparse matrix, corresponding to a row
-            predict_fn: prediction function. For classifiers, this should be a
-                function that takes a numpy array and outputs prediction
-                probabilities. For regressors, this takes a numpy array and
-                returns the predictions. For ScikitClassifiers, this is
-                `classifier.predict_proba()`. For ScikitRegressors, this
-                is `regressor.predict()`. The prediction function needs to work
-                on multiple feature vectors (the vectors randomly perturbed
-                from the data_row).
-            graph: networkx.DiGraph. Ground Truth of relations between the features.
-            generative_model: pickle model
-            labels: iterable with labels to be explained.
-            top_labels: if not None, ignore labels and produce explanations for
-                the K labels with highest prediction probabilities, where K is
-                this parameter.
-            num_features: maximum number of features present in explanation
-            num_samples: size of the neighborhood to learn the linear model
-            distance_metric: the distance metric to use for weights.
-            model_regressor: sklearn regressor to use in explanation. Defaults
-                to Ridge regression in LimeBase. Must have model_regressor.coef_
-                and 'sample_weight' as a parameter to model_regressor.fit()
-            sampling_method: Method to sample synthetic data. Defaults to Gaussian
-                sampling. Can also use Latin Hypercube Sampling.
-        Returns:
-            An Explanation object (see explanation.py) with the corresponding
-            explanations.
-        """
         if sp.sparse.issparse(data_row) and not sp.sparse.isspmatrix_csr(data_row):
             # Preventative code: if sparse, convert to csr format if not in csr format already
             data_row = data_row.tocsr()
 
         start_time = time.time()
-        data = self.__neighbors_generation(generative_model, graph, data_row, num_samples)
+        data = self.__neighbors_generation(self.generative_model, self.graph, data_row, num_samples)
         time_gen = (time.time() - start_time)
 
         if sp.sparse.issparse(data):
@@ -203,7 +178,7 @@ class CALimeTabularExplainer(LimeTabularExplainer):
 
         node_names = list(graph.nodes)
         positions = {node_names[position]: position for position in range(len(node_names))}
-        num_cols = data_row.shape[1]
+        num_cols = data_row.shape[0]
         neighbors = np.zeros((num_samples, num_cols))
 
         idx_temp = 0
@@ -236,7 +211,7 @@ class CALimeTabularExplainer(LimeTabularExplainer):
                 saved_model = pickle.loads(generative_model.dependent_dist[node])
                 changed_value = saved_model.predict(parents_value)
         else:
-            changed_value = np.array([data_row[node]])
+            changed_value = np.array([data_row[positions[node]]])
 
         return changed_value
 
@@ -262,5 +237,8 @@ class CALimeTabularExplainer(LimeTabularExplainer):
                         if configuration[elem][1]:
                             # dependent variable that it is changed
                             configuration[node] = (False, True, predecessors)
+                        else:
+                            # dependent variable that it is not changed
+                            configuration[node] = (False, False, predecessors)
 
         return configuration

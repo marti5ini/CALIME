@@ -20,10 +20,10 @@ class Apriori:
 
     """
 
-    def __init__(self, dataframe, nbins=4, strategy='quantile', target='m', zmax=3, support=5):
+    def __init__(self, dataframe, num_bins=4, strategy='quantile', target='m', zmax=3, support=5):
         """
         :param dataframe: pandas Dataframe, continuous variables
-        :param nbins: integer, default = 4
+        :param num_bins: integer, default = 4
             the number of bins to produce
         :param strategy: string, default = 'quantile'
             strategy used to define the widths of the bins.
@@ -34,7 +34,7 @@ class Apriori:
         """
 
         self.df = dataframe
-        self.n_bins = nbins
+        self.n_bins = num_bins
         self.strategy = strategy
         self.target = target
         self.zmax = zmax
@@ -84,7 +84,7 @@ class Apriori:
         """
         :param to_tuple: bool, default=False
         If it is True, the function returns list of tuples ex. [('0', '1'), ('1', '2')]
-        otherwise list of frozenset [frozenset{(('0', '1')}, frozenset{(('1', '2')}]
+        otherwise list of frozenset [frozenset{('0', '1')}, frozenset{('1', '2')}]
         :return:
         """
 
@@ -95,4 +95,3 @@ class Apriori:
             return [tuple(itemset) for itemset in self.results]
         else:
             return self.results
-

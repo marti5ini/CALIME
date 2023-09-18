@@ -1,7 +1,9 @@
 import os
+import pickle
 import warnings
 
 import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -13,8 +15,6 @@ from src.causal_model import get_causal_model
 from src.lime_explainer import LimeExplainer
 
 warnings.simplefilter('ignore')
-import networkx as nx
-import pickle
 
 
 def save_explanation(explanation, algorithm):
@@ -30,10 +30,11 @@ def save_explanation(explanation, algorithm):
     plt.savefig(path + f'/{algorithm}_explanation.png')
     return
 
+
 if __name__ == '__main__':
     dataset_name = 'wine_red'
 
-    path = os.path.join(os.path.dirname(__file__), 'experiments', dataset_name)
+    path = os.path.join(os.path.dirname(__file__), 'results', dataset_name)
     if not os.path.exists(path):
         os.makedirs(path)
     dataset_path = os.path.join(os.path.dirname(__file__), 'data', dataset_name + '.csv')
@@ -91,29 +92,24 @@ if __name__ == '__main__':
     # Use the trained 'best_estimator' model to make predictions on the test dataset.
     y_pred = best_estimator.predict(test)
 
-    # Print a classification report that includes metrics like precision, recall, and F1-score,
-    # comparing the predicted labels ('y_pred') to the true labels ('labels_test'),
-    # considering the possible class values ('class_values').
-    # print("Classification Report:")
-    # print(classification_report(labels_test, y_pred, labels=class_values))
-
     # Reset the index of the 'test' DataFrame.
     test = test.reset_index()
 
     # Select a random row from the 'test' DataFrame.
     random_row = test.sample(n=1)
 
-    # Extract the feature values from the selected row ('data_row').
-    data_row = random_row.iloc[:, 1:].values.flatten()
-
     # Print the index of the selected row from the 'test' DataFrame.
     print('Selected Row Index:', random_row.index[0])
+
+    # Extract the feature values from the selected row ('data_row').
+    data_row = random_row.iloc[:, 1:].values.flatten()
 
     # LIME explanation
     lime_explainer = LimeExplainer(train_bb.values, feature_names=feature_names,
                                    class_names=class_values, discretize_continuous=False)
 
-    lime_exp, lime_data, lime_neighbor_gen_time = lime_explainer.explain_instance(data_row, best_estimator.predict_proba)
+    lime_exp, lime_data, lime_neighbor_gen_time = lime_explainer.explain_instance(data_row,
+                                                                                  best_estimator.predict_proba)
 
     # CALIME explanation
     calime_explainer = CALimeExplainer(graph, generative_model, train_bb.values, feature_names=feature_names,
@@ -124,4 +120,3 @@ if __name__ == '__main__':
 
     save_explanation(lime_exp, 'lime')
     save_explanation(calime_exp, 'calime')
-

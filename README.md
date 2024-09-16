@@ -24,15 +24,25 @@ Dependencies are listed in requirements.txt, a virtual environment is advised:
 python3 -m venv ./venv # optional but recommended
 pip install -r requirements.txt
 ```
+
+Please note that in addition to the dependencies listed in the requirements file, you also need to install a novel version of "fim" package. You can find the package and installation instructions on the following webpage: [https://borgelt.net/pyfim.html]
+
 ## Citation
 
 If you use `CALIME` in your research, please cite our paper:
 
 ```
-@@article{cinquini2022calime,
-  title={CALIME: Causality-Aware Local Interpretable Model-Agnostic Explanations},
-  author={Cinquini, Martina and Guidotti, Riccardo},
-  journal={arXiv preprint arXiv:2212.05256},
-  year={2022}
+@InProceedings{cinquini2024calime,
+author="Cinquini, Martina
+and Guidotti, Riccardo",
+editor="Longo, Luca
+and Lapuschkin, Sebastian
+and Seifert, Christin",
+title="Causality-Aware Local Interpretable Model-Agnostic Explanations",
+booktitle="Explainable Artificial Intelligence",
+year="2024",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="108--124",
 }
 ```
